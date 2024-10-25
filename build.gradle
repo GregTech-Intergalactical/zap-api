@@ -1,6 +1,7 @@
 plugins {
     id "maven-publish"
     id "idea"
+    id "fabric-loom" version "1.7-SNAPSHOT" apply false
 }
 
 def isCI = System.getenv("GITHUB_ACTION")

@@ -1,5 +1,5 @@
 plugins {
-    id "fabric-loom" version "1.6.+"
+    id "fabric-loom"
 }
 
 archivesBaseName = "${rootProject.tesseract_archive_base_name}-fabric"
