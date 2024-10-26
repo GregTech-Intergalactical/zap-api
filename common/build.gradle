@@ -1,29 +1,17 @@
 plugins {
-    id "xyz.wagyourtail.unimined" version "1.3.9-SNAPSHOT"
+    id "fabric-loom"
 }
 archivesBaseName = rootProject.tesseract_archive_base_name
 
-unimined.minecraft {
-    version minecraft_version
-    defaultRemapJar = false
-
-    mappings {
-        intermediary()
-        mojmap()
-        devFallbackNamespace "official"
-        devNamespace "mojmap"
-        parchment(rootProject.minecraft_version, rootProject.mappings_version)
-    }
-
-    mods.modImplementation {
-        namespace("intermediary")
-    }
-}
-
 dependencies{
+    minecraft "com.mojang:minecraft:${rootProject.minecraft_version}"
+    mappings loom.layered() {
+        officialMojangMappings()
+        parchment("org.parchmentmc.data:parchment-${rootProject.minecraft_version}:${rootProject.mappings_version}@zip")
+    }
     //compileOnly("com.electronwill.night-config:toml:${rootProject.nightconfig_version}")
     //compileOnly("com.electronwill.night-config:core:${rootProject.nightconfig_version}")
-    modImplementation("earth.terrarium:botarium-common-${project.minecraft_version}:${project.botarium_version}")
+    modImplementation("earth.terrarium:botarium-fabric-${project.minecraft_version}:${project.botarium_version}")
     implementation 'com.github.Carbon-Config-Project:CarbonConfigLib:1.3.0'
 }
 
