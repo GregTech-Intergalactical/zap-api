@@ -1,6 +1,7 @@
 package tesseract.api;
 
 import net.minecraft.core.Direction;
+import tesseract.newgraph.NodePath;
 
 /**
  * A simple interface for representing connectable objects.
@@ -14,4 +15,9 @@ public interface IConnectable {
     boolean connects(Direction direction);
 
     boolean validate(Direction dir);
+
+
+    <T extends IConnectable> void setNodePath(NodePath<T> tNodePath);
+
+    void reloadLocks();
 }
