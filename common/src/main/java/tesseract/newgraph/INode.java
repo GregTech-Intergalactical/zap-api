@@ -10,6 +10,10 @@ public interface INode<T> {
     Direction getSide();
     BlockEntity getBlockEntity();
     List<INode<T>> getConsumers();
+    INode<T> getNeighborNode(Direction direction);
+    void setNeighborNode(Direction direction, INode<T> neighbor);
+    Lock getLock(Direction direction);
+    void setLock(Direction direction, Lock lock);
     int getNodeValue();
     int getHighestNodeValue();
     int geCreationTime();
