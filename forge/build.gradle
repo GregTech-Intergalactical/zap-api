@@ -10,8 +10,8 @@ neoForge {
         accessTransformers.add(at.absolutePath)
     }
     parchment {
-        minecraftVersion = rootProject.minecraft_version
-        mappingsVersion = rootProject.mappings_version
+        minecraftVersion = project.minecraft_version
+        mappingsVersion = project.mappings_version
     }
     runs {
         client {
