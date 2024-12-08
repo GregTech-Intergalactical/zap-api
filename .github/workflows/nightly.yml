@@ -31,11 +31,11 @@ jobs:
         server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
         settings-path: ${{ github.workspace }} # location for the settings.xml file
     - name: Setup Gradle Dependencies Cache
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         path: ~/.gradle/caches
               ~/.gradle/wrapper
-        key: ${{ runner.os }}-gradle-caches-${{ hashFiles('**/*.gradle','**/gradle/wrapper/gradle-wrapper.properties','**/*.properties') }}
+        key: ${{ runner.os }}-gradle-caches-${{ hashFiles('**/*.properties') }}
     - name: Build with Gradle
       run: ./gradlew build --stacktrace
     # The USERNAME and TOKEN need to correspond to the credential environment variables used in
