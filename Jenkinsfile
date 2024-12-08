@@ -21,10 +21,11 @@ pipeline {
     post {
         always {
             discordSend(
-                webhookURL: "https://discord.com/api/webhooks/1313642177083216073/H8EnQ65JusCjpqGTqLXDZI1BYBe4ArLJn3xSjEOWthg4Nwa7ZFSHu1SYag8fU4v4DB8k"
-                title: "Tesseract API ${TAG_NAME} #${BUILD_NUMBER}"
-                link: env.BUILD_URL
-                result: currentBuild.currentResult
+                webhookURL: "https://discord.com/api/webhooks/1313642177083216073/H8EnQ65JusCjpqGTqLXDZI1BYBe4ArLJn3xSjEOWthg4Nwa7ZFSHu1SYag8fU4v4DB8k",
+                thumbnail: "https://raw.githubusercontent.com/GT-Reimagined/gt-reimagined.github.io/refs/heads/main/icon.png",
+                title: "Tesseract API ${TAG_NAME} #${BUILD_NUMBER}",
+                link: env.BUILD_URL,
+                result: currentBuild.currentResult,
                 description: "Build: [${BUILD_NUMBER}](${env.BUILD_URL})\nStatus: ${currentBuild.currentResult}"
             )
         }
