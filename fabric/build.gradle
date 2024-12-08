@@ -2,7 +2,7 @@ plugins {
     id "fabric-loom"
 }
 
-archivesBaseName = "${rootProject.tesseract_archive_base_name}-fabric"
+archivesBaseName = "${project.tesseract_archive_base_name}-fabric"
 
 sourceSets {
     test {
@@ -36,19 +36,20 @@ repositories {
 }
 
 dependencies {
-    minecraft "com.mojang:minecraft:${rootProject.minecraft_version}"
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings loom.layered() {
         officialMojangMappings()
-        parchment("org.parchmentmc.data:parchment-${rootProject.minecraft_version}:${rootProject.mappings_version}@zip")
+        parchment("org.parchmentmc.data:parchment-${project.minecraft_version}:${project.mappings_version}@zip")
     }
-    modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
-    modApi "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}"
+    modImplementation "net.fabricmc:fabric-loader:${project.fabric_loader_version}"
+    modApi "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+    compileOnly(project(":tesseract-common"))
 
-    modApi(include("teamreborn:energy:${rootProject.energy_version}")) {
+    modApi(include("teamreborn:energy:${project.energy_version}")) {
         transitive = false
     }
     modImplementation(include("earth.terrarium:botarium-fabric-${project.minecraft_version}:${project.botarium_version}"))
-    modCompileOnly("curse.maven:modern_industrialization-405388:3866891")
+    modCompileOnly("curse.maven:modern_industrialization-405388:${project.modern_industrialization_file}")
     modImplementation(include("maven.modrinth:carbon-config:${project.carbon_config_fabric_version}"))
 }
 
@@ -61,7 +62,7 @@ processResources {
     }
 }
 
-tasks.withType(JavaCompile) {
+tasks.named('compileJava', JavaCompile) {
     source(project(":tesseract-common").sourceSets.main.allSource)
 }
 
@@ -77,18 +78,13 @@ publishing {
     }
 
     repositories {
-        def isCI = System.getenv("GITHUB_ACTION")
-        def isRELEASE = System.getenv("GITHUB_RELEASE")
-        if (isCI && isRELEASE) {
+        def isCI = System.getenv("CI")
+        if (isCI) {
             maven {
-                url = "https://repo.repsy.io/mvn/trinsdar/gregtech-intergalactical/"
-                credentials {
-                    username = System.getenv("MAVEN_USERNAME")
-                    password = System.getenv("MAVEN_PASSWORD")
-                }
+                url System.getenv("local_maven_url")
             }
         } else {
-            maven { url "file:///${project.projectDir}/mcmodsrepo" }
+            mavenLocal()
         }
     }
 }

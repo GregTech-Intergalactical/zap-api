@@ -1,56 +1,32 @@
 plugins {
-    id 'net.minecraftforge.gradle' version '[6.0,6.2)'
-    id 'org.parchmentmc.librarian.forgegradle' version '1.+'
-    id 'org.spongepowered.mixin' version '0.7.+'
+    id "net.neoforged.moddev.legacyforge" version "2.0.55-beta"
 }
-archivesBaseName = "${rootProject.tesseract_archive_base_name}-forge"
+archivesBaseName = "${project.tesseract_archive_base_name}-forge"
 
-minecraft {
-    // Change to your preferred mappings
-    mappings channel: "parchment", version: "${rootProject.mappings_version}-${rootProject.minecraft_version}"
-
+neoForge {
+    version = "${project.minecraft_version}-${project.forge_version}"
+    def at = project(':tesseract-common').file('src/main/resources/META-INF/accesstransformer.cfg')
+    if (at.exists()) {
+        accessTransformers.add(at.absolutePath)
+    }
+    parchment {
+        minecraftVersion = rootProject.minecraft_version
+        mappingsVersion = rootProject.mappings_version
+    }
     runs {
-        // applies to all the run configs below
-        configureEach {
-            workingDirectory project.file('run')
-            property 'forge.logging.markers', 'REGISTRIES'
-            property 'forge.logging.console.level', 'debug'
-            property 'mixin.env.remapRefMap', 'true'
-            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
-
-            // Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
-            property 'forge.enabledGameTestNamespaces', mod_id
-
-            mods {
-                "${mod_id}" {
-                    source sourceSets.main
-                }
-            }
-        }
-
         client {
-            property 'forge.enabledGameTestNamespaces', mod_id
+            client()
         }
-
-        server {
-            workingDirectory project.file('run/server')
-            property 'forge.enabledGameTestNamespaces', mod_id
-            args '--nogui'
-        }
-
-        // This run config launches GameTestServer and runs all registered gametests, then exits.
-        // By default, the server will crash when no gametests are provided.
-        // The gametest system is also enabled by default for other run configs under the /test command.
-        gameTestServer {
-            property 'forge.enabledGameTestNamespaces', mod_id
-        }
-
         data {
-            // example of overriding the workingDirectory set in configureEach above
-            workingDirectory project.file('run-data')
-
-            // Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
-            args '--mod', mod_id, '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
+            data()
+        }
+        server {
+            server()
+        }
+    }
+    mods {
+        "${project.mod_id}" {
+            sourceSet sourceSets.main
         }
     }
 }
@@ -58,28 +34,30 @@ minecraft {
 mixin {
     add sourceSets.main, "tesseract-forge.refmap.json"
     config "tesseract-forge.mixins.json"
-    debug.verbose = true
-    debug.export = true
 }
 
-jarJar.enable()
-
 dependencies {
-    minecraft "net.minecraftforge:forge:${rootProject.minecraft_version}-${rootProject.forge_version}"
     implementation(fg.deobf("earth.terrarium:botarium-forge-${project.minecraft_version}:${project.botarium_version}")){
         exclude(group: "curse.maven")
     }
+    compileOnly(project(":tesseract-common"))
     testImplementation('junit:junit:4.11')
     implementation(fg.deobf("maven.modrinth:carbon-config:${project.carbon_config_forge_version}"))
     jarJar("earth.terrarium:botarium-forge-${project.minecraft_version}:${project.botarium_version}"){
-        jarJar.ranged(it, "[2.0.5,)")
+        version {
+            strictly "[${project.botarium_version},)"
+            prefer "${project.botarium_version}"
+        }
     }
     jarJar("maven.modrinth:carbon-config:${project.carbon_config_forge_version}"){
-        jarJar.ranged(it, "[1.18.2-1.2.6,)")
+        version {
+            strictly("[1.18.2-1.2.6,)")
+            prefer("[1.18.2-1.2.6,)")
+        }
     }
 }
 
-tasks.withType(JavaCompile) {
+tasks.named('compileJava', JavaCompile) {
     source(project(":tesseract-common").sourceSets.main.allSource)
 }
 
@@ -96,10 +74,6 @@ sourcesJar {
     from(project(':tesseract-common').sourceSets.main.allSource)
 }
 
-tasks.named('jarJar', Jar).configure {
-    archiveClassifier.set("")
-}
-
 tasks.named('jar', Jar).configure {
     manifest {
         attributes([
@@ -112,33 +86,23 @@ tasks.named('jar', Jar).configure {
                 'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }
-
-    // This is the preferred method to reobfuscate your jar file
-    finalizedBy 'reobfJar'
-    archiveClassifier.set "thin"
 }
 
 publishing {
     publications {
         mavenJava(org.gradle.api.publish.maven.MavenPublication) {
             from components.java
-            jarJar.component(it)
         }
     }
 
     repositories {
-        def isCI = System.getenv("GITHUB_ACTION")
-        def isRELEASE = System.getenv("GITHUB_RELEASE")
-        if (isCI && isRELEASE) {
+        def isCI = System.getenv("CI")
+        if (isCI) {
             maven {
-                url = "https://repo.repsy.io/mvn/trinsdar/gregtech-intergalactical/"
-                credentials {
-                    username = System.getenv("MAVEN_USERNAME")
-                    password = System.getenv("MAVEN_PASSWORD")
-                }
+                url System.getenv("local_maven_url")
             }
         } else {
-            maven { url "file:///${project.projectDir}/mcmodsrepo"}
+            mavenLocal()
         }
     }
 }

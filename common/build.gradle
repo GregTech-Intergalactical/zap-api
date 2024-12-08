@@ -1,13 +1,13 @@
 plugins {
     id "fabric-loom"
 }
-archivesBaseName = rootProject.tesseract_archive_base_name
+archivesBaseName = "${project.tesseract_archive_base_name}-common"
 
 dependencies{
-    minecraft "com.mojang:minecraft:${rootProject.minecraft_version}"
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings loom.layered() {
         officialMojangMappings()
-        parchment("org.parchmentmc.data:parchment-${rootProject.minecraft_version}:${rootProject.mappings_version}@zip")
+        parchment("org.parchmentmc.data:parchment-${project.minecraft_version}:${project.mappings_version}@zip")
     }
     //compileOnly("com.electronwill.night-config:toml:${rootProject.nightconfig_version}")
     //compileOnly("com.electronwill.night-config:core:${rootProject.nightconfig_version}")
@@ -23,18 +23,13 @@ publishing {
     }
 
     repositories {
-        def isCI = System.getenv("GITHUB_ACTION")
-        def isRELEASE = System.getenv("GITHUB_RELEASE")
-        if (isCI && isRELEASE) {
+        def isCI = System.getenv("CI")
+        if (isCI) {
             maven {
-                url = "https://repo.repsy.io/mvn/trinsdar/gregtech-intergalactical/"
-                credentials {
-                    username = System.getenv("MAVEN_USERNAME")
-                    password = System.getenv("MAVEN_PASSWORD")
-                }
+                url System.getenv("local_maven_url")
             }
         } else {
-            maven { url "file:///${project.projectDir}/mcmodsrepo"}
+            mavenLocal()
         }
     }
 }
