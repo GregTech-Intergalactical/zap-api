@@ -6,5 +6,5 @@
     "IEnergyHandlerMixin"
   ],
   "minVersion": "0.8",
-  "refmap" : "tesseract-forge.refmap.json"
+  "refmap" : "tesseract.refmap.json"
 }

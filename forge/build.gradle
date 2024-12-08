@@ -32,17 +32,17 @@ neoForge {
 }
 
 mixin {
-    add sourceSets.main, "tesseract-forge.refmap.json"
+    add sourceSets.main, "tesseract.refmap.json"
     config "tesseract-forge.mixins.json"
 }
 
 dependencies {
-    implementation(fg.deobf("earth.terrarium:botarium-forge-${project.minecraft_version}:${project.botarium_version}")){
-        exclude(group: "curse.maven")
-    }
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+    implementation("org.jetbrains:annotations:26.0.1")
+    modImplementation("earth.terrarium:botarium-forge-${project.minecraft_version}:${project.botarium_version}")
     compileOnly(project(":tesseract-common"))
-    testImplementation('junit:junit:4.11')
-    implementation(fg.deobf("maven.modrinth:carbon-config:${project.carbon_config_forge_version}"))
+    testImplementation('junit:junit:4.13.1')
+    modImplementation("maven.modrinth:carbon-config:${project.carbon_config_forge_version}")
     jarJar("earth.terrarium:botarium-forge-${project.minecraft_version}:${project.botarium_version}"){
         version {
             strictly "[${project.botarium_version},)"
