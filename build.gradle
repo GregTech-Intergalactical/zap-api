@@ -2,6 +2,7 @@ plugins {
     id "maven-publish"
     id "idea"
     id "fabric-loom" version "1.7-SNAPSHOT" apply false
+    id "net.neoforged.moddev.legacyforge" version "2.0.58-beta" apply false
 }
 
 def isGITHU_ACTION = System.getenv("GITHUB_ACTION")

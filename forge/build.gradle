@@ -1,5 +1,5 @@
 plugins {
-    id "net.neoforged.moddev.legacyforge" version "2.0.55-beta"
+    id "net.neoforged.moddev.legacyforge"
 }
 archivesBaseName = "${project.tesseract_archive_base_name}-forge"
 
