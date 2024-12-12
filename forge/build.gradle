@@ -51,8 +51,7 @@ dependencies {
     }
     jarJar("maven.modrinth:carbon-config:${project.carbon_config_forge_version}"){
         version {
-            strictly("[1.18.2-1.2.6,)")
-            prefer("[1.18.2-1.2.6,)")
+            prefer(project.carbon_config_forge_version)
         }
     }
 }
