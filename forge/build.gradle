@@ -43,17 +43,8 @@ dependencies {
     compileOnly(project(":tesseract-common"))
     testImplementation('junit:junit:4.13.1')
     modImplementation("maven.modrinth:carbon-config:${project.carbon_config_forge_version}")
-    jarJar("earth.terrarium:botarium-forge-${project.minecraft_version}:${project.botarium_version}"){
-        version {
-            strictly "[${project.botarium_version},)"
-            prefer "${project.botarium_version}"
-        }
-    }
-    jarJar("maven.modrinth:carbon-config:${project.carbon_config_forge_version}"){
-        version {
-            prefer(project.carbon_config_forge_version)
-        }
-    }
+    jarJar("earth.terrarium:botarium-forge-${project.minecraft_version}:${project.botarium_version}")
+    jarJar("maven.modrinth:carbon-config:${project.carbon_config_forge_version}")
 }
 
 tasks.named('compileJava', JavaCompile) {
