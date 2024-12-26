@@ -1,10 +1,8 @@
-architectury {
-    platformSetupLoomIde()
-    fabric()
+plugins {
+    id "fabric-loom"
 }
 
-archivesBaseName = "${rootProject.tesseract_archive_base_name}-fabric"
-version = "${project.mod_version}-${rootProject.minecraft_version}"
+archivesBaseName = "${project.tesseract_archive_base_name}-fabric"
 
 sourceSets {
     test {
@@ -38,15 +36,16 @@ repositories {
 }
 
 dependencies {
-    modImplementation "net.fabricmc:fabric-loader:${rootProject.fabric_loader_version}"
-    modApi "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}"
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings loom.layered() {
+        officialMojangMappings()
+        parchment("org.parchmentmc.data:parchment-${project.minecraft_version}:${project.mappings_version}@zip")
+    }
+    modImplementation "net.fabricmc:fabric-loader:${project.fabric_loader_version}"
+    modApi "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+    compileOnly(project(":tesseract-common"))
 
-    common(project(path: ":tesseract-common", configuration: "namedElements")) { transitive false }
-    shadowCommon(project(path: ":tesseract-common", configuration: "transformProductionFabric")) { transitive false }
-    //todo figure this out
-    //testcommon(project(path: ":tesseract-common", configuration: "namedElements").sourceSets.test.output) { transitive false }
-    //testshadowCommon(project(path: ":tesseract-common", configuration: "transformProductionFabric").sourceSets.test.output) { transitive false }
-    modApi(include("teamreborn:energy:${rootProject.energy_version}")) {
+    modApi(include("teamreborn:energy:${project.energy_version}")) {
         transitive = false
     }
     modImplementation(include("earth.terrarium:botarium-fabric-${project.minecraft_version}:${project.botarium_version}"))
@@ -54,6 +53,7 @@ dependencies {
 }
 
 processResources {
+    from project(":tesseract-common").sourceSets.main.resources
     inputs.property "version", project.mod_version
 
     filesMatching("fabric.mod.json") {
@@ -61,38 +61,28 @@ processResources {
     }
 }
 
+tasks.named('compileJava', JavaCompile) {
+    source(project(":tesseract-common").sourceSets.main.allSource)
+}
+
 sourcesJar {
-    def commonSources = project(":tesseract-common").sourcesJar
-    dependsOn commonSources
-    from commonSources.archiveFile.map { zipTree(it) }
+    from(project(':tesseract-common').sourceSets.main.allSource)
 }
 
 publishing {
     publications {
         mavenJava(org.gradle.api.publish.maven.MavenPublication) {
-            artifact(sourcesJar) {
-                builtBy remapSourcesJar
-            }
-
-            afterEvaluate {
-                artifact remapJar
-            }
+            from components.java
         }
     }
 
     repositories {
-        def isCI = System.getenv("GITHUB_ACTION")
-        def isRELEASE = System.getenv("GITHUB_RELEASE")
-        if (isCI && isRELEASE) {
+        def isCI = System.getenv("CI")
+        if (isCI) {
             maven {
-                url = "https://repo.repsy.io/mvn/trinsdar/gregtech-intergalactical/"
-                credentials {
-                    username = System.getenv("MAVEN_USERNAME")
-                    password = System.getenv("MAVEN_PASSWORD")
-                }
+                url System.getenv("local_maven_url")
             }
         } else {
-            maven { url "file:///${project.projectDir}/mcmodsrepo" }
+            mavenLocal()
         }
     }
-}

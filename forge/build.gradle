@@ -1,52 +1,58 @@
-archivesBaseName = "${rootProject.tesseract_archive_base_name}-forge"
-version = "${project.mod_version}-${rootProject.minecraft_version}"
-
-architectury {
-    platformSetupLoomIde()
-    forge()
+plugins {
+    id "net.neoforged.moddev.legacyforge"
 }
+archivesBaseName = "${project.tesseract_archive_base_name}-forge"
 
-sourceSets {
-    test {
-        compileClasspath += main.compileClasspath
-        runtimeClasspath += main.runtimeClasspath
+neoForge {
+    version = "${project.minecraft_version}-${project.forge_version}"
+    def at = project(':tesseract-common').file('src/main/resources/META-INF/accesstransformer.cfg')
+    if (at.exists()) {
+        accessTransformers.add(at.absolutePath)
     }
-}
-
-loom {
-    forge{
-        mixinConfigs = [
-                "tesseract-forge.mixins.json"
-        ]
+    parchment {
+        minecraftVersion = project.minecraft_version
+        mappingsVersion = project.mappings_version
     }
     runs {
-        testClient {
+        client {
             client()
-            ideConfigGenerated project.rootProject == project
-            name = "Testmod Client"
-            source sourceSets.test
         }
-        testServer {
+        data {
+            data()
+        }
+        server {
             server()
-            ideConfigGenerated project.rootProject == project
-            name = "Testmod Server"
-            source sourceSets.test
         }
     }
+    mods {
+        "${project.mod_id}" {
+            sourceSet sourceSets.main
+        }
+    }
+}
+
+mixin {
+    add sourceSets.main, "tesseract.refmap.json"
+    config "tesseract-forge.mixins.json"
 }
 
 dependencies {
-    forge "net.minecraftforge:forge:${rootProject.minecraft_version}-${rootProject.forge_version}"
-    common(project(path: ":tesseract-common", configuration: "namedElements")) { transitive false }
-    shadowCommon(project(path: ":tesseract-common", configuration: "transformProductionForge")) { transitive = false }
-    modImplementation(include("earth.terrarium:botarium-forge-${project.minecraft_version}:${project.botarium_version}")){
-        exclude(group: "curse.maven")
-    }
-    testImplementation('junit:junit:4.11')
-    modImplementation(include("maven.modrinth:carbon-config:${project.carbon_config_forge_version}"))
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+    implementation("org.jetbrains:annotations:26.0.1")
+    modImplementation("earth.terrarium:botarium-forge-${project.minecraft_version}:${project.botarium_version}")
+    compileOnly(project(":tesseract-common"))
+    testImplementation('junit:junit:4.13.1')
+    modImplementation("maven.modrinth:carbon-config:${project.carbon_config_forge_version}")
+    jarJar("earth.terrarium:botarium-forge-${project.minecraft_version}:${project.botarium_version}")
+    jarJar("maven.modrinth:carbon-config:${project.carbon_config_forge_version}")
+}
+
+tasks.named('compileJava', JavaCompile) {
+    source(project(":tesseract-common").sourceSets.main.allSource)
 }
 
 processResources {
+    from project(":tesseract-common").sourceSets.main.resources
     inputs.property "version", project.mod_version
 
     filesMatching("META-INF/mods.toml") {
@@ -55,37 +61,39 @@ processResources {
 }
 
 sourcesJar {
-    def commonSources = project(":tesseract-common").sourcesJar
-    dependsOn commonSources
-    from commonSources.archiveFile.map { zipTree(it) }
+    from(project(':tesseract-common').sourceSets.main.allSource)
+}
+
+tasks.named('jar', Jar).configure {
+    manifest {
+        attributes([
+                'Specification-Title'     : mod_id,
+                'Specification-Vendor'    : "GregTech-Intergalactical",
+                'Specification-Version'   : '1', // We are version 1 of ourselves
+                'Implementation-Title'    : project.name,
+                'Implementation-Version'  : project.version,
+                'Implementation-Vendor'   : "GregTech-Intergalactical",
+                'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+                "MixinConfigs" : "tesseract-forge.mixins.json"
+        ])
+    }
 }
 
 publishing {
     publications {
         mavenJava(org.gradle.api.publish.maven.MavenPublication) {
-            artifact(sourcesJar) {
-                builtBy remapSourcesJar
-            }
-
-            afterEvaluate {
-                artifact remapJar
-            }
+            from components.java
         }
     }
 
     repositories {
-        def isCI = System.getenv("GITHUB_ACTION")
-        def isRELEASE = System.getenv("GITHUB_RELEASE")
-        if (isCI && isRELEASE) {
+        def isCI = System.getenv("CI")
+        if (isCI) {
             maven {
-                url = "https://repo.repsy.io/mvn/trinsdar/gregtech-intergalactical/"
-                credentials {
-                    username = System.getenv("MAVEN_USERNAME")
-                    password = System.getenv("MAVEN_PASSWORD")
-                }
+                url System.getenv("local_maven_url")
             }
         } else {
-            maven { url "file:///${project.projectDir}/mcmodsrepo"}
+            mavenLocal()
         }
     }
 }
